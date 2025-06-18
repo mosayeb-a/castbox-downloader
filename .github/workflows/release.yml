@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Build with Gradle
+        run: ./gradlew build uberJar
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/libs/*-uber.jar
+          body: |
+            ## Castbox Downloader CLI v${{ github.ref_name }}
+            
+            ### Installation
+            
+            1. Download the JAR file
+            2. Create an executable script:
+            ```bash
+            sudo tee /usr/local/bin/castbox-dl << 'EOF'
+            #!/bin/bash
+            java -jar /path/to/castboxdownloader-${{ github.ref_name }}-uber.jar
+            EOF
+            
+            sudo chmod +x /usr/local/bin/castbox-dl
+            ```
+            
+            ### Usage
+            ```bash
+            castbox-dl
+            ```
+            
+            Or run directly:
+            ```bash
+            java -jar castboxdownloader-${{ github.ref_name }}-uber.jar
+            ```
