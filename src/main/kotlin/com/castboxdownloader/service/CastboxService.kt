@@ -40,18 +40,22 @@ class CastboxService {
         val parsedUrl = URL(url)
         val host = parsedUrl.host
         val path = parsedUrl.path
-        host.contains("castbox.fm") && (path.startsWith("/episode/") || path.startsWith("/vb/"))
+        host.contains("castbox.fm") && (
+                path.startsWith("/episode/") ||
+                        path.matches(Regex("/[a-zA-Z]+/\\d+.*")) ||
+                        url.contains("-id")
+                )
     } catch (e: Exception) {
         false
     }
 
     private fun extractEpisodeId(url: String): String {
         val doc = fetchDocument(url)
-        
+
         return when {
-            url.contains("/vb/") -> {
-                Regex("\\d+").find(url.substringAfter("/vb/"))?.value
-                    ?: throw Exception("Could not find episode ID in /vb/ URL")
+            url.matches(Regex(".*castbox\\.fm/[a-zA-Z]+/\\d+.*")) -> {
+                Regex("/[a-zA-Z]+/(\\d+)").find(url)?.groupValues?.get(1)
+                    ?: throw Exception("Could not find episode ID in /<prefix>/<id> URL")
             }
             url.contains("-id") -> {
                 Regex("-id(\\d+)(?:$|\\?|-)").findAll(url).lastOrNull()?.groupValues?.get(1)
@@ -66,7 +70,7 @@ class CastboxService {
 
     private fun findEpisodeIdInScripts(doc: org.jsoup.nodes.Document): String? {
         val scriptTags = doc.select("script[type='text/javascript']")
-        
+
         for (script in scriptTags) {
             val scriptData = script.data()
             when {
@@ -105,7 +109,7 @@ class CastboxService {
             header("Origin", "https://castbox.fm")
             header("Referer", "https://castbox.fm/")
         }
-        
+
         val responseBody = response.body<JsonObject>()
         return responseBody["data"]?.jsonObject?.get("audio")?.jsonPrimitive?.content
             ?: throw Exception("Could not find audio URL in primary API response")
@@ -118,7 +122,7 @@ class CastboxService {
             header("Origin", "https://castbox.fm")
             header("Referer", "https://castbox.fm/")
         }
-        
+
         val responseBody = response.body<JsonObject>()
         return responseBody["audio"]?.jsonPrimitive?.content
             ?: throw Exception("Could not find audio URL in secondary API response")
@@ -135,7 +139,7 @@ class CastboxService {
 
     private fun fetchMetadata(url: String): Pair<String, String> {
         val doc = fetchDocument(url)
-        
+
         val title = doc.select("meta[property=og:title]").firstOrNull()?.attr("content")
             ?: doc.select("h1").firstOrNull()?.text()
             ?: doc.select("title").firstOrNull()?.text()
@@ -158,7 +162,7 @@ class CastboxService {
         val parsedUrl = URL(url)
         val path = parsedUrl.path.lowercase()
         path.endsWith(".mp3") || path.endsWith(".m4a") || path.endsWith(".aac") ||
-            url.contains("audio") || url.contains("media") || url.contains("stream")
+                url.contains("audio") || url.contains("media") || url.contains("stream")
     } catch (e: Exception) {
         false
     }
