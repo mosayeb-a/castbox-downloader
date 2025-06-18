@@ -1,5 +1,6 @@
-package com.castboxdownloader_cli
+package com.castboxdownloader.cli
 
+import com.castboxdownloader.service.CastboxService
 import kotlinx.coroutines.runBlocking
 
 fun main() {
@@ -14,7 +15,8 @@ fun main() {
         > """.trimIndent()
     )
 
-    val downloader = CastboxDownloader()
+    val downloader = CastboxDownloader(CastboxService())
+
     while (true) {
         val input = readlnOrNull()?.trim()
 

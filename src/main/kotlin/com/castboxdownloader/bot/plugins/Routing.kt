@@ -1,4 +1,4 @@
-package com.castboxdownloader.plugins
+package com.castboxdownloader.bot.plugins
 
 import io.ktor.server.application.*
 import io.ktor.server.request.*
