@@ -18,20 +18,21 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
 
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build uberJar
+        run: ./gradlew build uberJar --no-daemon --no-build-cache
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            build/libs/*-uber.jar
+            build/libs/castboxdownloader-1.0.1-uber.jar
           body: |
-            ## Castbox Downloader CLI v${{ github.ref_name }}
+            ## Castbox Downloader v${{ github.ref_name }}
             
             ### Installation
             
@@ -40,7 +41,7 @@ jobs:
             ```bash
             sudo tee /usr/local/bin/castbox-dl << 'EOF'
             #!/bin/bash
-            java -jar /path/to/castboxdownloader-${{ github.ref_name }}-uber.jar
+            java -jar /opt/castbox-downloader/castbox-downloader.jar
             EOF
             
             sudo chmod +x /usr/local/bin/castbox-dl
@@ -53,5 +54,5 @@ jobs:
             
             Or run directly:
             ```bash
-            java -jar castboxdownloader-${{ github.ref_name }}-uber.jar
+            java -jar castboxdownloader-1.0.1-uber.jar
             ```

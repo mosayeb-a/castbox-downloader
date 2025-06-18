@@ -12,10 +12,10 @@ plugins {
 }
 
 group = "com.castboxdownloader"
-version = "1.0.0"
+version = "1.0.1"
 
 application {
-    mainClass.set("com.castboxdownloader.ApplicationKt")
+    mainClass.set("com.castboxdownloader.cli.MainKt")
 }
 
 repositories {
@@ -42,11 +42,12 @@ dependencies {
 
 tasks.register<Jar>("uberJar") {
     archiveClassifier.set("uber")
+    archiveVersion.set(project.version.toString())
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     manifest {
         attributes(mapOf(
-            "Main-Class" to "com.castboxdownloader.ApplicationKt",
+            "Main-Class" to "com.castboxdownloader.cli.MainKt",
             "Implementation-Title" to project.name,
             "Implementation-Version" to project.version
         ))
@@ -55,8 +56,15 @@ tasks.register<Jar>("uberJar") {
     from(sourceSets.main.get().output)
     dependsOn(configurations.runtimeClasspath)
     from({
-        configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
+        configurations.runtimeClasspath.get()
+            .filter { it.name.endsWith("jar") }
+            .map { zipTree(it) }
     })
+}
+
+tasks.withType<AbstractArchiveTask>().configureEach {
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
 }
 
 publishing {
@@ -65,7 +73,6 @@ publishing {
             groupId = project.group.toString()
             artifactId = project.name
             version = project.version.toString()
-
             from(components["java"])
         }
     }
