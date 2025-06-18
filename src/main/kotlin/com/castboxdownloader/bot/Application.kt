@@ -6,6 +6,7 @@ import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import com.castboxdownloader.bot.plugins.configureRouting
+import com.castboxdownloader.service.CastboxService
 
 fun main() {
     embeddedServer(Netty, port = System.getenv("PORT")?.toInt() ?: 8080, host = "0.0.0.0") {
@@ -20,7 +21,9 @@ fun Application.module() {
 
     val botToken = System.getenv("TELEGRAM_BOT_TOKEN")
         ?: throw IllegalStateException("TELEGRAM_BOT_TOKEN is null")
-    val telegramBot = TelegramBot(botToken)
+
+    val castboxService = CastboxService()
+    val telegramBot = TelegramBot(botToken, castboxService)
 
     configureRouting(telegramBot)
-} 
+}
