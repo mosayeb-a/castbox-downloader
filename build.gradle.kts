@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "com.castboxdownloader"
-version = "0.0.1"
+version = "1.0.0"
 
 application {
     mainClass.set("com.castboxdownloader.ApplicationKt")
